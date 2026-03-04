@@ -32,6 +32,9 @@ const Login = () => {
       const role = user.role;
       const name = user.name;
 
+       if (data.token) localStorage.setItem('token', data.token);
+     if (data.user) localStorage.setItem("user", JSON.stringify(data.user));
+
       if (data.token) localStorage.setItem('token', data.token);
       if (name) localStorage.setItem('userName', name);
       if (role) localStorage.setItem('userRole', role);

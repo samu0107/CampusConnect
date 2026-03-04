@@ -44,7 +44,7 @@ const MainDashboard = () => {
     {
       title: 'Accommodation & Timetable',
       description: 'Manage boarding listings and sync your academic schedule in one place.',
-      path: '/accommodation',
+      path: '/accommodations',
       color: 'from-emerald-400 to-emerald-600',
       shadow: 'hover:shadow-emerald-200',
       icon: (
