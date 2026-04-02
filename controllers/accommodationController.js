@@ -1,8 +1,8 @@
+// controllers/accommodationController.js
 const Accommodation = require('../models/Accommodation');
 const path = require('path');
 const fs = require('fs');
 
-// GET /api/accommodations?minPrice=&maxPrice=&maxDistance=&facilities=WiFi,Parking&gender=
 exports.getAllAccommodations = async (req, res) => {
   try {
     const { minPrice, maxPrice, maxDistance, facilities, gender, available } = req.query;
@@ -19,7 +19,7 @@ exports.getAllAccommodations = async (req, res) => {
       filter.facilities = { $all: facArr };
     }
     if (gender && gender !== 'Any') filter.gender = { $in: [gender, 'Any'] };
-    if (available !== 'false') filter.isAvailable = true;
+    if (available !== 'false' && available !== 'all') filter.isAvailable = true;
 
     const accommodations = await Accommodation.find(filter).sort({ createdAt: -1 });
     res.json({ success: true, count: accommodations.length, data: accommodations });
@@ -28,7 +28,6 @@ exports.getAllAccommodations = async (req, res) => {
   }
 };
 
-// GET /api/accommodations/:id
 exports.getAccommodationById = async (req, res) => {
   try {
     const acc = await Accommodation.findById(req.params.id);
@@ -39,7 +38,6 @@ exports.getAccommodationById = async (req, res) => {
   }
 };
 
-// POST /api/accommodations  (Admin only)
 exports.createAccommodation = async (req, res) => {
   try {
     const files = req.files;
@@ -51,8 +49,11 @@ exports.createAccommodation = async (req, res) => {
     }
 
     const photoPaths = files.map(f => `/uploads/accommodations/${f.filename}`);
-    const { title, description, price, distance, distanceUnit, address,
-            facilities, gender, availableRooms, ownerName, ownerPhone, ownerEmail, ownerUserId } = req.body;
+    const {
+      title, description, price, distance, distanceUnit, address,
+      facilities, gender, availableRooms,
+      ownerName, ownerPhone, ownerEmail, ownerUserId
+    } = req.body;
 
     const acc = await Accommodation.create({
       title, description,
@@ -64,7 +65,12 @@ exports.createAccommodation = async (req, res) => {
       facilities: facilities ? JSON.parse(facilities) : [],
       gender: gender || 'Any',
       availableRooms: Number(availableRooms) || 1,
-      owner: { name: ownerName, phone: ownerPhone, email: ownerEmail, userId: ownerUserId },
+      owner: {
+        name: ownerName,
+        phone: ownerPhone,
+        email: ownerEmail,
+        userId: ownerUserId || req.user._id   // ← Fix: fallback to admin
+      },
       createdBy: req.user._id
     });
 
@@ -74,7 +80,6 @@ exports.createAccommodation = async (req, res) => {
   }
 };
 
-// PUT /api/accommodations/:id  (Admin only)
 exports.updateAccommodation = async (req, res) => {
   try {
     const acc = await Accommodation.findById(req.params.id);
@@ -85,7 +90,6 @@ exports.updateAccommodation = async (req, res) => {
     if (updateData.price) updateData.price = Number(updateData.price);
     if (updateData.distance) updateData.distance = Number(updateData.distance);
 
-    // Handle new photos if uploaded
     if (req.files && req.files.length > 0) {
       const newPhotos = req.files.map(f => `/uploads/accommodations/${f.filename}`);
       const existingPhotos = updateData.keepPhotos ? JSON.parse(updateData.keepPhotos) : [];
@@ -98,7 +102,6 @@ exports.updateAccommodation = async (req, res) => {
         return res.status(400).json({ success: false, message: 'Maximum 5 photos allowed' });
       }
 
-      // Delete removed old photos
       const removedPhotos = acc.photos.filter(p => !existingPhotos.includes(p));
       removedPhotos.forEach(p => {
         const filePath = path.join(__dirname, '..', p);
@@ -108,15 +111,21 @@ exports.updateAccommodation = async (req, res) => {
       updateData.photos = allPhotos;
     }
 
-    // Build owner object
     if (updateData.ownerName) {
       updateData.owner = {
         name: updateData.ownerName,
         phone: updateData.ownerPhone,
         email: updateData.ownerEmail,
-        userId: updateData.ownerUserId || acc.owner.userId
+        userId: updateData.ownerUserId || acc.owner.userId || req.user._id  // ← Fix
       };
     }
+
+    // Remove fields that shouldn't be directly updated
+    delete updateData.keepPhotos;
+    delete updateData.ownerName;
+    delete updateData.ownerPhone;
+    delete updateData.ownerEmail;
+    delete updateData.ownerUserId;
 
     const updated = await Accommodation.findByIdAndUpdate(req.params.id, updateData, {
       new: true, runValidators: true
@@ -128,13 +137,11 @@ exports.updateAccommodation = async (req, res) => {
   }
 };
 
-// DELETE /api/accommodations/:id  (Admin only)
 exports.deleteAccommodation = async (req, res) => {
   try {
     const acc = await Accommodation.findById(req.params.id);
     if (!acc) return res.status(404).json({ success: false, message: 'Not found' });
 
-    // Delete photo files
     acc.photos.forEach(p => {
       const filePath = path.join(__dirname, '..', p);
       if (fs.existsSync(filePath)) fs.unlinkSync(filePath);

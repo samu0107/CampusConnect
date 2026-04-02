@@ -14,7 +14,7 @@ const protect = async (req, res, next) => {
     const user = await User.findById(decoded.id).select("_id role");
     if (!user) return res.status(401).json({ message: "User not found" });
 
-    req.user = user; // has _id and role
+    req.user = user;
     next();
   } catch (err) {
     return res.status(401).json({ message: "Not authorized, token failed" });
@@ -22,7 +22,7 @@ const protect = async (req, res, next) => {
 };
 
 const adminOnly = (req, res, next) => {
-  if (req.user?.role === "admin") return next();
+  if (req.user?.role?.toLowerCase() === "admin") return next();
   return res.status(403).json({ success: false, message: "Admin access required" });
 };
 

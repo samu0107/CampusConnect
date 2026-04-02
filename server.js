@@ -32,7 +32,7 @@ app.use("/api/jobs", require("./routes/jobs"));
 app.use("/api/applications", require("./routes/applications"));
 app.use("/api/accommodations", require("./routes/accommodation"));
 app.use("/api/chat", require("./routes/chat"));
-
+app.use("/api/time", require("./routes/timeManagement"));
 connectDB();
 
 app.get("/", (req, res) => res.send("CampusConnect API running"));

@@ -9,14 +9,18 @@ import JobPortal from './components/Dashboard.jsx';
 import AdminDashboard from './components/AdminDashboard.jsx';
 import AdminJobPortal from './components/AdminJobPortal.jsx';
 import AdminApplicationViewer from './components/AdminApplicationViewer.jsx';
-
+import AdminAccommodationPage from "./pages/AdminAccommodationPage";
+import TimeManagementPage from "./pages/TimeManagementPage.tsx";
+import { AuthProvider } from "./context/AuthContext";
 
 const AccommodationsPage = lazy(() => import('./pages/AccommodationsPage.tsx'));
 const AccommodationDetail = lazy(() => import('./components/accommodation/AccommodationDetail.tsx'));
 const AccommodationForm = lazy(() => import('./components/accommodation/AccommodationForm.tsx'));
 
 
+
 ReactDOM.createRoot(document.getElementById('root')).render(
+  
   <React.StrictMode>
     <BrowserRouter>
       <Routes>
@@ -43,6 +47,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <Route path="/accommodations/new" element={<AccommodationForm />} />
         <Route path="/accommodations/:id/edit" element={<AccommodationForm />} />
         <Route path="/accommodations/:id" element={<AccommodationDetail />} />
+        <Route path="/admin/accommodations" element={<AdminAccommodationPage />} />
+        <Route path="/time-management" element={<TimeManagementPage />} />
         <Route
           path="/study-support"
           element={<div className="p-8 text-center">Study Support</div>}
