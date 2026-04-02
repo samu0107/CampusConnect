@@ -80,5 +80,18 @@ router.put('/:id/status', async (req, res) => {
   }
 });
 
+// @route   GET /api/applications/student/:studentId
+// @desc    Get all applications for a specific student
+router.get('/student/:studentId', async (req, res) => {
+  try {
+    const applications = await Application.find({ studentId: req.params.studentId })
+      .populate('jobId', 'title company jobType')
+      .sort({ createdAt: -1 });
+    res.json(applications);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 module.exports = router;
 

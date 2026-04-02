@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 
 const AdminJobPortal = () => {
   const [jobs, setJobs] = useState([]);
+  const [isSyncing, setIsSyncing] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     company: '',
@@ -77,6 +78,61 @@ const AdminJobPortal = () => {
     }
   };
 
+  const handleSyncJobs = async () => {
+    setIsSyncing(true);
+
+    const mockIndustryJobs = [
+      { title: 'Software Engineering Intern', company: 'WSO2', jobType: 'Internship', description: 'Join our core platform team. Experience with Java, Spring Boot, and Microservices required. Fast-paced learning environment.' },
+      { title: 'Trainee Full Stack Developer', company: 'Arimac IT', jobType: 'Internship', description: 'Looking for a sharp intern to join our engineering team. Must have strong foundational knowledge in the MERN stack (MongoDB, Express, React, Node.js).' },
+      { title: 'QA Automation Engineer', company: 'Sysco LABS', jobType: 'Job', description: 'Write automated test scripts for our latest enterprise software. Knowledge of Selenium, Cypress, and CI/CD pipelines is a huge plus.' },
+      { title: 'Frontend Developer', company: '99x', jobType: 'Job', description: 'Build scalable web applications for our European clients. Requires deep expertise in React, TypeScript, and modern CSS frameworks like Tailwind.' },
+      { title: 'Associate Software Engineer', company: 'IFS', jobType: 'Job', description: 'Work on our core ERP systems. Strong background in C#, .NET core, and SQL Server required.' },
+      { title: 'DevOps Engineering Intern', company: 'Virtusa', jobType: 'Internship', description: 'Learn cloud infrastructure management. Familiarity with AWS, Docker, and Linux command line is expected.' },
+      { title: 'Data Engineer', company: 'PickMe', jobType: 'Job', description: 'Handle massive real-time data streams. Python, SQL, and experience with Big Data tools like Hadoop or Spark needed.' },
+      { title: 'Cloud Architecture Trainee', company: 'Dialog Axiata', jobType: 'Internship', description: 'Assist our cloud architects in migrating legacy systems. Knowledge of Azure or AWS networking concepts required.' },
+      { title: 'Game Development Intern', company: 'CreativeHub', jobType: 'Internship', description: 'Passionate about gaming? Work with Unity and Unreal Engine to build immersive 3D experiences. C# knowledge required.' },
+      { title: 'UI/UX Designer Intern', company: 'Surge Global', jobType: 'Internship', description: 'Design beautiful, user-centric interfaces. Must be proficient in Figma and Adobe XD. Please attach your portfolio link.' },
+      { title: 'Backend Node.js Developer', company: 'Mitra Innovation', jobType: 'Job', description: 'Scale our backend API services. Requires expertise in Node.js, Express, Redis, and highly scalable RESTful APIs.' },
+      { title: 'Cybersecurity Analyst', company: 'LSEG (London Stock Exchange Group)', jobType: 'Job', description: 'Monitor and secure global financial networks. Deep understanding of networking protocols, penetration testing, and security fundamentals.' },
+      { title: 'Business Analyst Trainee', company: 'Pearson', jobType: 'Internship', description: 'Bridge the gap between engineering and stakeholders. Familiarity with Agile methodologies, Scrum, and Jira required.' },
+      { title: 'Machine Learning Intern', company: 'Zone24x7', jobType: 'Internship', description: 'Work on predictive retail algorithms. Strong math background and Python (TensorFlow, PyTorch) skills required.' },
+      { title: 'Mobile App Developer', company: 'Calcey Technologies', jobType: 'Job', description: 'Build cross-platform mobile apps for US startups. Flutter and Dart experience is mandatory.' },
+      { title: 'React Native Intern', company: 'Rootcode Labs', jobType: 'Internship', description: 'Join our mobile team. Learn to deploy to iOS and Android using React Native. JavaScript knowledge required.' },
+      { title: 'Technical Writer Intern', company: 'WSO2', jobType: 'Internship', description: 'Document our open-source APIs. Excellent English writing skills and basic programming knowledge needed.' },
+      { title: 'Project Management Intern', company: 'Sysco LABS', jobType: 'Internship', description: 'Assist project managers in sprint planning and unblocking developers. Great communication skills required.' },
+      { title: 'Cloud Support Engineer', company: '99x', jobType: 'Job', description: 'Provide L2 support for cloud infrastructure. Linux administration and AWS troubleshooting skills needed.' },
+      { title: 'ERP Support Intern', company: 'IFS', jobType: 'Internship', description: 'Learn enterprise software support. Basic SQL knowledge and excellent customer communication skills required.' },
+      { title: 'Game QA Tester', company: 'Arimac IT', jobType: 'Internship', description: 'Playtest unreleased mobile and PC games. Report bugs systematically using Jira. Attention to detail is critical.' },
+      { title: 'Senior Full Stack Engineer', company: 'Virtusa', jobType: 'Job', description: 'Lead enterprise modernization projects. Expert level Angular, Spring Boot, and Java required.' },
+      { title: 'Site Reliability Engineer', company: 'PickMe', jobType: 'Job', description: 'Ensure 99.99% uptime for our ride-hailing services. Kubernetes, Go, and Microservices experience required.' },
+      { title: 'Data Science Intern', company: 'Dialog Axiata', jobType: 'Internship', description: 'Analyze telco data to find trends. Python, R, and Pandas knowledge required.' },
+      { title: '3D Animator Intern', company: 'CreativeHub', jobType: 'Internship', description: 'Rig and animate 3D character models for client projects. Blender or Maya experience needed.' },
+      { title: 'Software Quality Assurance Intern', company: 'Mitra Innovation', jobType: 'Internship', description: 'Learn both manual and automated testing. Understanding of the software testing life cycle (STLC) is required.' },
+      { title: 'Frontend UI Developer', company: 'Surge Global', jobType: 'Job', description: 'Turn Figma designs into pixel-perfect React code. HTML, CSS, and advanced JavaScript required.' },
+      { title: 'Network Engineering Intern', company: 'LSEG', jobType: 'Internship', description: 'Assist in managing enterprise routing and switching. CCNA knowledge is highly preferred.' },
+      { title: 'Product Manager', company: 'Zone24x7', jobType: 'Job', description: 'Drive the vision for our retail hardware products. 3+ years of product management experience required.' },
+      { title: 'iOS Developer', company: 'Calcey Technologies', jobType: 'Job', description: "Native iOS development using Swift. Experience with Apple's human interface guidelines required." },
+    ];
+
+    try {
+      const response = await fetch('http://localhost:5000/api/jobs/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jobs: mockIndustryJobs }),
+      });
+
+      if (response.ok) {
+        alert('⚡ Successfully synchronized 5 live industry jobs from external API!');
+        fetchJobs();
+      }
+    } catch (error) {
+      console.error('Sync failed:', error);
+      alert('API Sync Failed. Check console.');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-950 font-sans text-slate-300 p-8">
       <div className="max-w-7xl mx-auto">
@@ -88,7 +144,14 @@ const AdminJobPortal = () => {
               <span className="text-emerald-500 font-bold">● Active</span>
             </p>
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={handleSyncJobs}
+              disabled={isSyncing}
+              className="flex items-center text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-500 px-4 py-2.5 rounded-lg shadow-lg shadow-indigo-500/20 transition-all border border-indigo-400/30 disabled:opacity-50"
+            >
+              {isSyncing ? 'Syncing...' : '⚡ Sync Industry API'}
+            </button>
             <Link
               to="/admin/applications"
               className="flex items-center text-sm font-bold text-white bg-blue-600 hover:bg-blue-500 px-5 py-2.5 rounded-lg shadow-lg shadow-blue-500/20 transition-all"
@@ -99,7 +162,7 @@ const AdminJobPortal = () => {
               to="/admin-dashboard"
               className="flex items-center text-sm font-bold text-slate-400 hover:text-white transition-colors bg-slate-900 border border-slate-800 px-4 py-2.5 rounded-lg"
             >
-              Return to Root
+              Return
             </Link>
           </div>
         </div>

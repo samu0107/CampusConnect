@@ -11,7 +11,9 @@ const AdminDashboard = () => {
   }, []);
 
   const handleLogout = () => {
-    localStorage.clear();
+    localStorage.removeItem('token');
+    localStorage.removeItem('userName');
+    localStorage.removeItem('userRole');
     navigate('/login');
   };
 
@@ -70,7 +72,7 @@ const AdminDashboard = () => {
     {
       title: 'Study Support Oversight',
       description: 'Manage Q&A forums, approve notes, and oversee study sessions.',
-      path: '/admin/study-support',
+      path: '/admin/qa',
       accent: 'group-hover:border-orange-500 group-hover:shadow-orange-500/20',
       iconText: 'text-orange-400',
       icon: (
@@ -121,9 +123,11 @@ const AdminDashboard = () => {
             </div>
             <button
               onClick={handleLogout}
-              className="bg-slate-800 hover:bg-red-600 border border-slate-700 hover:border-red-500 text-slate-300 hover:text-white px-4 py-2 rounded-lg text-sm font-bold transition-all active:scale-95 shadow-md"
+              className="bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-700 border border-red-200 px-4 py-2 rounded-lg text-sm font-bold transition-all shadow-sm flex items-center space-x-2 active:scale-95"
+              title="Securely sign out of CampusConnect"
             >
-              Terminate Session
+              <span className="text-lg">🚪</span>
+              <span className="hidden sm:inline">Sign Out</span>
             </button>
           </div>
         </div>
