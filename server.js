@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
@@ -6,6 +7,13 @@ const http = require("http");
 const path = require("path");
 const { Server } = require("socket.io");
 const chatSocket = require("./socket/chatSocket");
+=======
+const express = require('express');
+const dotenv = require('dotenv');
+const cors = require('cors');
+const path = require('path');
+const connectDB = require('./config/db');
+>>>>>>> b22d0fe6145d37fbe98664d2543db0f55edd837c
 
 dotenv.config();
 
@@ -20,8 +28,20 @@ const io = new Server(server, {
 
 app.use(cors());
 app.use(express.json());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+<<<<<<< HEAD
 chatSocket(io);
+=======
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/jobs', require('./routes/jobs'));
+app.use('/api/applications', require('./routes/applications'));
+app.use('/api/posts', require('./routes/posts'));
+app.use('/api/marketplace', require('./routes/marketplace'));
+app.use('/api/accommodation', require('./routes/accommodation'));
+app.use('/api/profiles', require('./routes/profiles'));
+app.use('/api/notifications', require('./routes/notifications'));
+>>>>>>> b22d0fe6145d37fbe98664d2543db0f55edd837c
 
 // Serve uploaded files
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));

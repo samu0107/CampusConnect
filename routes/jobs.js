@@ -41,5 +41,32 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
+// @route   POST /api/jobs/sync (MOCK API SYNC)
+// @desc    Inject a batch of industry jobs instantly
+router.post('/sync', async (req, res) => {
+  try {
+    const jobsToSync = req.body.jobs;
+
+    if (!jobsToSync || !Array.isArray(jobsToSync)) {
+      return res.status(400).json({ message: 'Invalid data format.' });
+    }
+
+    const defaultPostedBy = '65e4a3b2c1f8d900123abcde';
+    const normalizedJobs = jobsToSync.map((job) => ({
+      ...job,
+      postedBy: job.postedBy || defaultPostedBy,
+    }));
+
+    const insertedJobs = await Job.insertMany(normalizedJobs);
+
+    res.status(201).json({
+      message: `Successfully synced ${insertedJobs.length} live jobs!`,
+      insertedJobs,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 module.exports = router;
 
