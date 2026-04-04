@@ -50,6 +50,50 @@ export default function AccommodationForm({ existing, onSuccess, onCancel }: Pro
   const [previews, setPreviews] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  const validate = (): boolean => {
+    const errors: Record<string, string> = {};
+
+    // Price: Rs. 1,000 – Rs. 500,000
+    const price = Number(form.price);
+    if (!form.price) {
+      errors.price = "Price is required.";
+    } else if (isNaN(price) || price < 1000) {
+      errors.price = "Price must be at least Rs. 1,000.";
+    } else if (price > 500000) {
+      errors.price = "Price cannot exceed Rs. 500,000.";
+    }
+
+    // Email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!form.ownerEmail) {
+      errors.ownerEmail = "Email is required.";
+    } else if (!emailRegex.test(form.ownerEmail)) {
+      errors.ownerEmail = "Enter a valid email address.";
+    }
+
+    // Phone: 10-digit Sri Lankan number starting with 0
+    const phoneRegex = /^0[0-9]{9}$/;
+    const rawPhone = form.ownerPhone.replace(/[\s\-]/g, "");
+    if (!form.ownerPhone) {
+      errors.ownerPhone = "Phone number is required.";
+    } else if (!phoneRegex.test(rawPhone)) {
+      errors.ownerPhone = "Enter a valid 10-digit phone number (e.g. 0771234567).";
+    }
+
+    // Address: optional "No." prefix, street number, at least 2 comma-separated parts
+    // e.g. "12, Temple Road, Malabe" or "No. 12, Temple Road, Malabe"
+    const addressRegex = /^(No\.?\s*)?\d+[\w/-]*,\s*.+,\s*.+$/i;
+    if (!form.address) {
+      errors.address = "Address is required.";
+    } else if (!addressRegex.test(form.address.trim())) {
+      errors.address = 'Address must include a street number, street name, and city (e.g. "12, Temple Road, Malabe").';
+    }
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const totalPhotos = keepPhotos.length + newPhotos.length;
 
@@ -80,8 +124,11 @@ export default function AccommodationForm({ existing, onSuccess, onCancel }: Pro
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
     if (totalPhotos < 2) return setError("Please add at least 2 photos");
     if (totalPhotos > 5) return setError("Maximum 5 photos allowed");
+    if (!validate()) return; // stop if field validation fails
+
     setLoading(true);
     try {
       const fd = new FormData();
@@ -110,8 +157,10 @@ export default function AccommodationForm({ existing, onSuccess, onCancel }: Pro
   };
 
   const inp = "w-full bg-[#0d1117] border border-[#2a3142] rounded-lg px-4 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/40 transition-all";
+  const inpError = "w-full bg-[#0d1117] border border-red-500/60 rounded-lg px-4 py-2.5 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-red-400 focus:ring-1 focus:ring-red-500/40 transition-all";
   const lbl = "block text-[10px] font-bold text-slate-500 mb-1.5 uppercase tracking-widest";
   const card = "bg-[#141824] border border-[#1e2535] rounded-xl p-5";
+  const errMsg = "mt-1.5 text-[11px] text-red-400 flex items-center gap-1";
 
   return (
     <div className="min-h-screen bg-[#0d1117] text-white font-sans">
@@ -174,6 +223,18 @@ export default function AccommodationForm({ existing, onSuccess, onCancel }: Pro
         {error && (
           <div className="mb-5 flex items-center gap-3 bg-red-950/40 text-red-400 text-sm px-4 py-3 rounded-xl border border-red-800/40">
             ⚠️ {error}
+          </div>
+        )}
+
+        {/* Field-level error summary */}
+        {Object.keys(fieldErrors).length > 0 && (
+          <div className="mb-5 bg-red-950/40 border border-red-800/40 rounded-xl px-4 py-3 space-y-1">
+            <p className="text-red-400 text-xs font-bold uppercase tracking-wider mb-2">Please fix the following:</p>
+            {Object.values(fieldErrors).map((msg, i) => (
+              <p key={i} className="text-red-400 text-sm flex items-center gap-2">
+                <span className="text-red-500">•</span> {msg}
+              </p>
+            ))}
           </div>
         )}
 
@@ -257,10 +318,20 @@ export default function AccommodationForm({ existing, onSuccess, onCancel }: Pro
               </div>
               <div>
                 <label className={lbl}>Address *</label>
-                <input type="text" required value={form.address}
-                  onChange={(e) => setForm({ ...form, address: e.target.value })}
+                <input
+                  type="text"
+                  required
+                  value={form.address}
+                  onChange={(e) => {
+                    setForm({ ...form, address: e.target.value });
+                    if (fieldErrors.address) setFieldErrors((prev) => ({ ...prev, address: "" }));
+                  }}
                   placeholder="No. 12, Temple Road, Malabe"
-                  className={inp} />
+                  className={fieldErrors.address ? inpError : inp}
+                />
+                {fieldErrors.address && (
+                  <p className={errMsg}>⚠ {fieldErrors.address}</p>
+                )}
               </div>
             </div>
           </div>
@@ -274,11 +345,23 @@ export default function AccommodationForm({ existing, onSuccess, onCancel }: Pro
                   <label className={lbl}>Monthly Fee (Rs.) *</label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs font-bold">Rs.</span>
-                    <input type="number" required min="0" value={form.price}
-                      onChange={(e) => setForm({ ...form, price: e.target.value })}
+                    <input
+                      type="number"
+                      required
+                      min="0"
+                      value={form.price}
+                      onChange={(e) => {
+                        setForm({ ...form, price: e.target.value });
+                        if (fieldErrors.price) setFieldErrors((prev) => ({ ...prev, price: "" }));
+                      }}
                       placeholder="15000"
-                      className={`${inp} pl-9`} />
+                      className={`${fieldErrors.price ? inpError : inp} pl-9`}
+                    />
                   </div>
+                  {fieldErrors.price && (
+                    <p className={errMsg}>⚠ {fieldErrors.price}</p>
+                  )}
+                  <p className="mt-1 text-[10px] text-slate-600">Range: Rs. 1,000 – Rs. 500,000</p>
                 </div>
                 <div>
                   <label className={lbl}>Available Rooms</label>
@@ -363,17 +446,37 @@ export default function AccommodationForm({ existing, onSuccess, onCancel }: Pro
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className={lbl}>Phone *</label>
-                  <input type="tel" required value={form.ownerPhone}
-                    onChange={(e) => setForm({ ...form, ownerPhone: e.target.value })}
-                    placeholder="07X XXXXXXX"
-                    className={inp} />
+                  <input
+                    type="tel"
+                    required
+                    value={form.ownerPhone}
+                    onChange={(e) => {
+                      setForm({ ...form, ownerPhone: e.target.value });
+                      if (fieldErrors.ownerPhone) setFieldErrors((prev) => ({ ...prev, ownerPhone: "" }));
+                    }}
+                    placeholder="0771234567"
+                    className={fieldErrors.ownerPhone ? inpError : inp}
+                  />
+                  {fieldErrors.ownerPhone && (
+                    <p className={errMsg}>⚠ {fieldErrors.ownerPhone}</p>
+                  )}
                 </div>
                 <div>
                   <label className={lbl}>Email *</label>
-                  <input type="email" required value={form.ownerEmail}
-                    onChange={(e) => setForm({ ...form, ownerEmail: e.target.value })}
+                  <input
+                    type="email"
+                    required
+                    value={form.ownerEmail}
+                    onChange={(e) => {
+                      setForm({ ...form, ownerEmail: e.target.value });
+                      if (fieldErrors.ownerEmail) setFieldErrors((prev) => ({ ...prev, ownerEmail: "" }));
+                    }}
                     placeholder="owner@email.com"
-                    className={inp} />
+                    className={fieldErrors.ownerEmail ? inpError : inp}
+                  />
+                  {fieldErrors.ownerEmail && (
+                    <p className={errMsg}>⚠ {fieldErrors.ownerEmail}</p>
+                  )}
                 </div>
               </div>
             </div>

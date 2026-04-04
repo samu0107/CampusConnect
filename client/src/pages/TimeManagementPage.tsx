@@ -502,26 +502,10 @@ export default function TimeManagementPage() {
                               </div>
                             ))}
                             {day.exams.slice(0,1).map((e: any) => (
-                              <div key={e._id} className="group relative bg-indigo-100 text-indigo-700 text-[9px] px-1 py-0.5 rounded font-bold">
-                                <span className="truncate pr-4">{e.subject}</span>
-                                <div className="absolute right-0 top-0 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <button onClick={() => { setEditExam(e); setExamForm({ subject: e.subject, examDate: e.examDate?.slice(0,10), startTime: e.startTime, venue: e.venue, notes: e.notes }); setShowExamForm(true); }}
-                                    className="w-3 h-3 bg-indigo-200 hover:bg-indigo-300 rounded flex items-center justify-center text-[6px]" title="Edit">✏️</button>
-                                  <button onClick={() => axios.delete(`${API}/api/time/exams/${e._id}`, { headers: headers() }).then(() => { showToast("Deleted!"); fetchAll(); })}
-                                    className="w-3 h-3 bg-red-200 hover:bg-red-300 rounded flex items-center justify-center text-[6px]" title="Delete">🗑️</button>
-                                </div>
-                              </div>
+                              <div key={e._id} className="bg-indigo-100 text-indigo-700 text-[9px] px-1 py-0.5 rounded font-bold truncate">{e.subject}</div>
                             ))}
                             {day.sessions.slice(0,1).map((s: any) => (
-                              <div key={s._id} className="group relative bg-emerald-100 text-emerald-700 text-[9px] px-1 py-0.5 rounded font-bold">
-                                <span className="truncate pr-4">{s.topic}</span>
-                                <div className="absolute right-0 top-0 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <button onClick={() => { setEditSess(s); setSessForm({ subject: s.subject, topic: s.topic, date: s.date?.slice(0,10), startTime: s.startTime, endTime: s.endTime, notes: s.notes }); setShowSessForm(true); }}
-                                    className="w-3 h-3 bg-emerald-200 hover:bg-emerald-300 rounded flex items-center justify-center text-[6px]" title="Edit">✏️</button>
-                                  <button onClick={() => axios.delete(`${API}/api/time/study-sessions/${s._id}`, { headers: headers() }).then(() => { showToast("Deleted!"); fetchAll(); })}
-                                    className="w-3 h-3 bg-red-200 hover:bg-red-300 rounded flex items-center justify-center text-[6px]" title="Delete">🗑️</button>
-                                </div>
-                              </div>
+                              <div key={s._id} className="bg-emerald-100 text-emerald-700 text-[9px] px-1 py-0.5 rounded font-bold truncate">{s.topic}</div>
                             ))}
                             {total > 3 && <div className="text-[9px] text-slate-400 font-bold px-1">+{total - 3} more</div>}
                           </div>
